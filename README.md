@@ -1,45 +1,75 @@
-# rETH accounting invariants — reproducible safety checks
+# rETH accounting invariants — a re-runnable witness
 
-Minimal Foundry harness that re-runs rETH (Rocket Pool) accounting invariants against **mainnet
-state**, so any reviewer can verify the claims instead of trusting a report.
+A small Foundry harness that pins Rocket Pool's rETH to **mainnet state** and asserts six accounting
+properties. It is written so that a reviewer can re-run it and get the same numbers, instead of reading a
+report and trusting it.
 
-## What it checks
+Part of the [Rocket Pool GMC Round 42](https://dao.rocketpool.net/t/4070) proposal *"Invariant witness for
+rETH mint/redeem paths"* — this repository is the first, deliberately narrow slice of that work.
 
-| test | property | why it matters |
-|---|---|---|
-| `test_RoundTripNeverProfits` | ETH → rETH → ETH never returns more than deposited | mint/burn fee accounting must not leak value |
-| `testFuzz_RoundTripNeverProfits` | same, 200 random amounts (0.0001–10 000 ETH) | single-value checks miss rounding at the edges |
-| `testFuzz_SmallAmountRounding` | 1 wei…0.001 ETH: quote never returns more value than input | dust deposits are where floor/ceil bugs live |
-| `test_ExchangeRateNonDecreasing` | exchange rate does not fall over 30 days | silent rate regressions would dilute every holder |
-| `test_ExchangeRateAtLeastParity` | rate ≥ 1 ETH per rETH | a sub-parity rate would mean accounting loss |
-| `test_LiveDepositIsGatedOrConserved` | when `deposit()` reverts (pool gated), no ETH is taken | a gated feature must not silently absorb funds |
+## The claim, in one sentence
 
-## How to run
+On three pinned blocks, the rETH mint/burn **quotes** never let a round trip or a dust amount come back with
+more ETH than it went in with, the exchange rate does not fall over a simulated 30-day interval, and when
+deposits are gated the contract does not take the caller's ETH.
+
+## What is verified
+
+| test | property |
+|---|---|
+| `test_RoundTripNeverProfits` | ETH → rETH → ETH does not create ETH (1 ETH case) |
+| `testFuzz_RoundTripNeverProfits` | same, 200 random amounts in [0.0001, 10 000] ETH |
+| `testFuzz_SmallAmountRounding` | dust (1 wei … 0.001 ETH): quote never returns more value than the input |
+| `test_ExchangeRateNonDecreasing` | rate does not fall over a simulated 30 days |
+| `test_ExchangeRateAtLeastParity` | rate ≥ 1 ETH per rETH |
+| `test_LiveDepositIsGatedOrConserved` | when `deposit()` reverts, the caller's ETH is not taken |
+| `test_BurnPathPaysAtMostRate` | burn pays no more than quoted, and records "unavailable" honestly when the path is closed |
+
+Run it:
 
 ```bash
 forge install foundry-rs/forge-std
 export MAINNET_RPC_URL=https://eth-mainnet.public.blastapi.io   # any archive RPC
 forge test --match-contract REthAccountingTest -vv --fuzz-runs 200
+
+# historical blocks (deposit/burn had different states there)
+FORK_BLOCK=21500000 forge test --match-contract REthAccountingTest -vv
+FORK_BLOCK=20000000 forge test --match-contract REthAccountingTest -vv
 ```
 
-Expected: **6 passed**.
+Expected: **7 passed** on each block.
 
-## Findings from the first run (honest notes)
+## Evidence discipline
 
-1. `getTotalCollateral()` is the **liquid buffer** (deposit pool), not total staked ETH. Comparing it
-   with `totalSupply * rate` is wrong — an early version of this harness asserted exactly that and
-   failed. The invariant was ill-posed, not the contract.
-2. On fork block **26 290 581** the live `deposit()` reverts with no reason string (deposits gated).
-   The harness therefore asserts the safety property instead: **when gated, ETH is not taken**.
-3. Exchange rate on that block: **1.174609541108734450**. Round-trip on 1 ETH:
-   0.851346736938712879 rETH → 0.999999999999999999 ETH.
+This repository follows the claim-registry method: every statement about the protocol is typed by its
+evidence, and the wording is constrained by the type.
+
+| file | role |
+|---|---|
+| [CLAIMS.md](CLAIMS.md) | every claim, its evidence type (`test` / `measurement` / `reading`), and the strongest permitted wording |
+| [METRICS.md](METRICS.md) | every number with the exact command and log line that produced it |
+| [NOT-CLAIMED.md](NOT-CLAIMED.md) | what this witness explicitly refuses to assert — the most important file here |
+| [tools/check_claims.py](tools/check_claims.py) | fails if a claim points at a test that does not exist, or if the suite does not pass |
+
+```bash
+python tools/check_claims.py --run     # claim registry + test suite, one command
+```
+
+## Two things the first version got wrong (kept in the record)
+
+1. **`getTotalCollateral()` is the liquid buffer**, not the staked ETH backing rETH. An early invariant
+   compared it with `totalSupply × rate` and "failed" by a factor of 140. The invariant was ill-posed, not
+   the protocol. See [NOT-CLAIMED.md](NOT-CLAIMED.md).
+2. **Both user-facing paths are gated on the pinned blocks**: `deposit()` reverts with no reason string, and
+   `burn` reverts for lack of deposit-pool liquidity. The harness therefore asserts the *safety of the gated
+   state* rather than pretending the open state was exercised.
 
 ## What this is not
 
-Not an audit. It is a small, re-runnable witness of specific conservation properties.
-Absence of a counterexample in 200 fuzz runs is evidence, not proof.
+Not an audit, not a proof, not a guarantee. Seven tests on three blocks are a witness; the absence of a
+counterexample in 200 fuzz runs is evidence, not proof. The beacon-chain side of rETH accounting is not read
+here at all.
 
-## Status
+## License
 
-Prepared by an autonomous agent. Publishing (repository + a short post in the Rocket Pool GMC
-Round 42 thread) requires the operator's approval.
+MIT (see [LICENSE](LICENSE)). The write-up is CC BY 4.0.

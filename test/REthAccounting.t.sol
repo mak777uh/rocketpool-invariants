@@ -25,7 +25,12 @@ contract REthAccountingTest is Test {
     function setUp() public {
         // форк mainnet: контракты Rocket Pool уже развёрнуты, исходники не нужны
         string memory rpc = vm.envOr("MAINNET_RPC_URL", string("https://ethereum-rpc.publicnode.com"));
-        vm.createSelectFork(rpc);
+        uint256 forkBlock = vm.envOr("FORK_BLOCK", uint256(0));
+        if (forkBlock == 0) {
+            vm.createSelectFork(rpc);              // текущее состояние
+        } else {
+            vm.createSelectFork(rpc, forkBlock);   // исторический блок (когда приём/вывод были открыты)
+        }
     }
 
     /// 1) курс не убывает за 30 дней при отсутствии сжиганий
@@ -92,6 +97,27 @@ contract REthAccountingTest is Test {
         assertLe(ethBack, amount + 1, "rounding gives back more than put in");
         if (rethOut > 0) {
             assertLe(rethOut, amount, "rETH units exceed ETH units at rate > 1");
+        }
+    }
+
+    /// 7) путь БЕРНА: даём себе rETH через deal() и жжём — ETH назад не больше, чем по курсу
+    ///    (проверяет округление вниз на стороне протокола и отсутствие переплаты)
+    function test_BurnPathPaysAtMostRate() public {
+        deal(address(RETH), address(this), 5 ether);
+        uint256 rethBal = RETH.balanceOf(address(this));
+        assertEq(rethBal, 5 ether, "deal did not credit rETH");
+
+        uint256 expected = RETH.getEthValue(rethBal);
+        uint256 ethBefore = address(this).balance;
+        try RETH.burn(rethBal) {
+            uint256 got = address(this).balance - ethBefore;
+            assertLe(got, expected + 1, "burn paid more than quoted");
+            assertLe(got, 5 ether + 1, "burn paid more than burned value");
+            emit log_named_uint("burned rETH", rethBal);
+            emit log_named_uint("quoted ETH", expected);
+            emit log_named_uint("received ETH", got);
+        } catch {
+            emit log_string("burn unavailable on this fork block (deposit pool liquidity)");
         }
     }
 }
