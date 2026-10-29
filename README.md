@@ -104,6 +104,19 @@ Both directions were tested. Tampering with a recorded digest makes the verifier
 green on both blocks — a receipt without a signature cannot prove where it came from. The verifier says this
 in its own output rather than implying otherwise; that limitation is precisely what `"signed": false` records.
 
+
+## Coverage matrix
+
+`COVERAGE.md` lists **every** statement with its evidence type (`proof` / `test` / `statistics` /
+`observation` / `judgment`), where it lives, and whether it currently passes — plus a separate table of what is
+**not** covered. The matrix is checked against the code, not trusted:
+
+```bash
+python tools/check_coverage.py     # exits 1 if COVERAGE.md and test/*.sol disagree
+```
+
+Tested in both directions: adding a row for a test that does not exist makes the checker exit 1.
+
 ## Slices
 
 | slice | file | statements | evidence type |
