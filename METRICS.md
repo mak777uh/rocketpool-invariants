@@ -68,3 +68,30 @@ Output: `receipts/26294800.json` — **7/7 passed**, `forge_exit_code: 0`, `sign
 
 Input digests recorded in the receipt (first 16 hex chars): test file `5d2d2daa2682e14b`,
 `foundry.toml` `be4b75759aeddee3`, `CLAIMS.md` `02b9b95635ae8b36`, `NOT-CLAIMED.md` `9fecc51404dd9b28`.
+
+## Slice M2 — deposit pool and rate source, 29.10.2026
+
+New file: `test/DepositPoolInvariants.t.sol` — **4 statements**, run on blocks **26 294 800** and
+**26 290 581**, both **4/4 passed**:
+
+| statement | what it rules out |
+|---|---|
+| deposit pool balance ≤ maximum pool size | the pool holding more ETH than its own declared cap (balance 16.34 ETH vs cap 6 000 000 ETH at 26 294 800) |
+| network total ETH ≥ deposit pool balance | the pool accounting for ETH that is not in the network total (362 610 ETH vs 16.34 ETH) |
+| excess balance ≤ total balance | `getExcessBalance()` being an independent counter rather than a subset |
+| rETH rate within 0.1% of network-total/supply | the rate being read from a different source than the network total |
+
+**A wrong model, caught by its own test.** The rate check was first written against
+`getTotalCollateral()`, which returned **2 645 ETH** while the rate was 1.17 and supply 308 566 rETH —
+arithmetically impossible for a real collateral figure. The correct source is
+`RocketNetworkBalances.getTotalETHBalance()` (**362 610 ETH**). The test failed loudly, the model was fixed,
+and only then did it pass. This is the intended behaviour: a test that checks our reading of the contracts
+must be able to fail when the reading is wrong.
+
+**A tolerance that says what it is.** The comparison allows 0.1% because `getTotalETHBalance()` is the last
+oracle update (daily) while `totalSupply()` is current; intraday mint/burn moves the ratio by exactly this
+order (0.0455% at block 26 294 800). Claiming strict equality would have been a stronger-looking but false
+statement.
+
+**Not claimed:** nothing here covers minipool distribution, node-operator collateral, withdrawal queues or
+bridge paths — those remain M3. The four statements above are `test`, not `proof`.
