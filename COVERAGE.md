@@ -35,6 +35,19 @@ M2.2 | `test_NetworkTotalCoversDepositPool` — network total ETH ≥ pool balan
 M2.3 | `test_ExcessBalanceSubsetOfBalance` — excess ≤ balance — excess is a subset, not an independent counter | `test` | passes | same two blocks |
 M2.4 | `test_ExchangeRateMatchesNetworkTotal` — rate within 0.1% of `getTotalETHBalance() / totalSupply()` | `test` | passes after one failure | same two blocks; the 0.1% band is the daily oracle cadence, measured at 0.0455% |
 
+
+## Slice M3 — vault solvency (`test/VaultSolvency.t.sol`)
+
+| # | statement | type | status | evidence |
+|---|---|---|---|---|
+M3.1 | `test_VaultCoversDepositPoolLiability` — real ETH in `RocketVault` ≥ the pool's liability | `test` | passes | blocks 26 294 800 (367.74 vs 16.34 ETH) and 24 000 000 (317.62 vs 0.60 ETH) |
+M3.2 | `test_PoolBalanceIsVaultEntry` — `depositPool.getBalance()` equals the vault entry exactly | `test` | passes | both blocks; values match bit-for-bit |
+M3.3 | `test_PoolLiabilityBelowVaultTotal` — liability never exceeds the vault's entire ETH | `test` | passes | both blocks |
+
+Addresses are resolved from `RocketStorage` **at the fork block**, because the deposit pool moved
+(`0xdd3f…5af8` → `0xce15…4fdc`); querying the current address at an old block returns empty, which is easily
+mistaken for a zero balance. That mistake is recorded in `HYPOTHESES.md` as lesson for H8.
+
 ## Infrastructure (not protocol statements, but auditable)
 
 | item | type | status | evidence |

@@ -95,3 +95,27 @@ statement.
 
 **Not claimed:** nothing here covers minipool distribution, node-operator collateral, withdrawal queues or
 bridge paths — those remain M3. The four statements above are `test`, not `proof`.
+
+## Slice M3 — vault solvency, 29.10.2026
+
+New file: `test/VaultSolvency.t.sol` — **3 statements**, run on blocks **26 294 800** and **24 000 000**, both
+**3/3 passed**:
+
+| statement | value at 26 294 800 | at 24 000 000 |
+|---|---|---|
+vault ETH ≥ pool liability | 367.74 ETH vs 16.34 ETH | 317.62 ETH vs 0.60 ETH |
+pool balance == vault entry (bit-for-bit) | `16336320333442741935` both sides | `602707798926377666` both sides |
+liability ≤ vault total | holds | holds |
+
+The receipt now covers **14 statements, 14/14** on block 26 294 800, and `verify_receipt.py --rerun` reproduces
+the set exactly.
+
+**Why this slice exists.** In the source, `RocketDepositPool.getBalance()` is literally
+`rocketVault.balanceOf("rocketDepositPool")` — the pool does not hold ETH itself. So the meaningful question is
+not "does the pool's number look right" but "does the vault actually hold what it says it owes". Three
+statements answer it, and none of them needs an archive node beyond what a fork already gives us.
+
+**A trap recorded, not repeated.** The deposit pool address moved from `0xdd3f…5af8` to `0xce15…4fdc`. Querying
+the *current* address at an old block returns empty, which reads as a zero balance and looks like an accounting
+failure. The test resolves addresses from `RocketStorage` at the fork block instead. The wrong version of this
+probe produced a false "discrepancy" during the night; it is documented in `HYPOTHESES.md` under H8.
