@@ -105,6 +105,17 @@ green on both blocks — a receipt without a signature cannot prove where it cam
 in its own output rather than implying otherwise; that limitation is precisely what `"signed": false` records.
 
 
+
+## CI that can fail
+
+`.github/workflows/checks.yml` runs three checks on every push: the coverage matrix must match the code, every
+receipt must be internally consistent (`passed == total == listed`, `signed: false`), and the matrix must not
+contain a `proof` row — because no kernel-checked artifact exists yet, and the day one does, this check is where
+it gets registered.
+
+The full forked run is deliberately **not** in CI: it needs an archive RPC with a key, and a green CI without a
+fork would suggest the invariants had been checked when they had not.
+
 ## Coverage matrix
 
 `COVERAGE.md` lists **every** statement with its evidence type (`proof` / `test` / `statistics` /

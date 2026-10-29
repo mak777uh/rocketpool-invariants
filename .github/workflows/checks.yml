@@ -1,0 +1,47 @@
+name: checks
+
+# Две проверки, которые не требуют сети и не могут «пройти случайно»:
+#   1) матрица покрытия совпадает с кодом (каждый тест упомянут, лишних строк нет);
+#   2) квитанции, лежащие в receipts/, читаются и внутренне согласованы.
+# Полный прогон с форком в CI не делается намеренно: он требует архивного RPC с ключом,
+# а зелёный CI без форка создал бы ложное впечатление, что инварианты проверены.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Coverage matrix matches the code
+        run: python tools/check_coverage.py
+
+      - name: Receipts are self-consistent
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          bad = 0
+          for p in sorted(pathlib.Path("receipts").glob("*.json")):
+              r = json.loads(p.read_text())
+              s = r.get("summary") or {}
+              total, passed = s.get("tests"), s.get("passed")
+              listed = len(r.get("tests") or [])
+              ok = isinstance(total, int) and total == passed == listed and r.get("signed") is False
+              print(f"{p.name}: {passed}/{total} listed={listed} signed={r.get('signed')} -> {'ok' if ok else 'PROBLEM'}")
+              bad += 0 if ok else 1
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Coverage and receipts must not contradict
+        run: |
+          # в матрице не должно быть типа `proof`, пока ни одного Lean-доказательства не проверено
+          if grep -nE '^\|.*\| *`proof` *\|' COVERAGE.md; then
+            echo "COVERAGE.md claims a proof, but no kernel-checked artifact exists"; exit 1
+          fi
+          echo "no unearned proof claims"
