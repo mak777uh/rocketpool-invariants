@@ -36,3 +36,35 @@ copied from a report, a dashboard or a model output; each is a log line of a run
   buffer, so any "coverage" ratio computed from it would be misleading (see `NOT-CLAIMED.md`).
 - No beacon-chain numbers (validator balances, penalties): the harness cannot read them.
 - No timing or throughput claims: the harness is a correctness witness, not a benchmark.
+
+## Run 4 — chain head, 28.10.2026 19:22 MSK
+
+Command: `forge test` in the repository root with `FORK_BLOCK` unset (fork at the latest block the RPC serves).
+
+Result: **7 passed, 0 failed** (two fuzz tests, 256 runs each).
+
+Block context: head was **26 292 390** at the time of the run; an attempt to pin **26 291 390** failed for a
+different reason worth recording — the public archive endpoint answered
+`historical state ... is not available`, i.e. **the failure was the RPC's state retention, not the invariant**.
+That distinction matters: a red test that is actually a dead endpoint must never be reported as a broken
+protocol.
+
+## Run 5 — pinned recent block, 29.10.2026 03:45 MSK
+
+Command: `FORK_BLOCK=26294800 forge test` (chain head was 26 294 901 at the time, so this is ~100 blocks
+behind head — close enough to be "now", far enough that the RPC still serves state).
+
+Result: **7 passed, 0 failed** in 15 s (two fuzz tests, 256 runs each).
+
+Why this run exists: Run 4 forked at whatever the RPC called "latest", which makes it unreproducible a day
+later. Here the block number is pinned **and** recent, so the result can be re-checked by anyone while the
+archive node still holds that state. Both properties matter: a pinned old block is reproducible but no longer
+says anything about today's protocol; an unpinned head says something about today but cannot be re-run.
+
+## Receipt for Run 5 — 29.10.2026
+
+Command: `python tools/witness_receipt.py --block 26294800`
+Output: `receipts/26294800.json` — **7/7 passed**, `forge_exit_code: 0`, `signed: false`.
+
+Input digests recorded in the receipt (first 16 hex chars): test file `5d2d2daa2682e14b`,
+`foundry.toml` `be4b75759aeddee3`, `CLAIMS.md` `02b9b95635ae8b36`, `NOT-CLAIMED.md` `9fecc51404dd9b28`.

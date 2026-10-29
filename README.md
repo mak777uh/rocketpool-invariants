@@ -73,3 +73,18 @@ here at all.
 ## License
 
 MIT (see [LICENSE](LICENSE)). The write-up is CC BY 4.0.
+
+## Reproducible receipt (slice 1)
+
+`tools/witness_receipt.py` runs the invariant suite against a pinned block and writes a JSON receipt:
+the block number, the digests of the test file and the claim documents, and the per-test result.
+
+```bash
+python tools/witness_receipt.py --block 26294800
+# receipts/26294800.json  ->  7/7 passed, exit 0
+```
+
+The receipt is **reproducible, not attested**: it carries `"signed": false` and says so in
+`signature_note`. Two runs on the same block with the same input digests must agree on the `tests` array;
+if they do not, the code or the environment changed. Signing is deliberately out of scope for slice 1 — a
+receipt that claims more than it can prove is exactly the failure mode this repository exists to avoid.
