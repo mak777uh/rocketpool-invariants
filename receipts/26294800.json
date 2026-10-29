@@ -1,7 +1,7 @@
 {
  "kind": "reth-invariant-witness-receipt",
  "version": 1,
- "generated_utc": "2026-10-29T01:14:26+00:00",
+ "generated_utc": "2026-10-29T01:25:53+00:00",
  "block": 26294800,
  "rpc": "https://eth-mainnet.public.blastapi.io",
  "forge_exit_code": 0,
@@ -14,8 +14,8 @@
   "NOT-CLAIMED.md": "9fecc51404dd9b2861dbf5d3e81b78b15116638fd8c2981b8f82b37f1dbb84a2"
  },
  "summary": {
-  "tests": 7,
-  "passed": 7,
+  "tests": 11,
+  "passed": 11,
   "failed": 0
  },
  "tests": [
@@ -41,8 +41,29 @@
    "gas": null
   },
   {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_DepositPoolBalanceWithinMaximum()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_ExcessBalanceSubsetOfBalance()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
    "suite": "REthAccountingTest",
    "test": "test_ExchangeRateAtLeastParity()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_ExchangeRateMatchesNetworkTotal()",
    "status": "Success",
    "reason": null,
    "gas": null
@@ -57,6 +78,13 @@
   {
    "suite": "REthAccountingTest",
    "test": "test_LiveDepositIsGatedOrConserved()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_NetworkTotalCoversDepositPool()",
    "status": "Success",
    "reason": null,
    "gas": null

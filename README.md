@@ -103,3 +103,18 @@ Both directions were tested. Tampering with a recorded digest makes the verifier
 `block` field, however, **passes** the digest check and is not caught even by `--rerun` when the tests are
 green on both blocks — a receipt without a signature cannot prove where it came from. The verifier says this
 in its own output rather than implying otherwise; that limitation is precisely what `"signed": false` records.
+
+## Slices
+
+| slice | file | statements | evidence type |
+|---|---|---|---|
+M1 — mint, burn, exchange rate | `test/REthAccounting.t.sol` | 7 | `test` |
+M2 — deposit pool bounds, rate source | `test/DepositPoolInvariants.t.sol` | 4 | `test` |
+
+Eleven statements total, all green on block **26 294 800** (`receipts/26294800.json`), and M1 is additionally
+green on three older blocks plus a chain-head run. Nothing here is a theorem: no Lean model has been checked
+for these paths yet, and saying otherwise would be the exact overclaim this repository exists to prevent.
+
+The M2 rate check earned its place by failing first: written against `getTotalCollateral()` it read 2 645 ETH
+while the rate was 1.17 and supply 308 566 rETH — impossible — and the correct source turned out to be
+`getTotalETHBalance()` (362 610 ETH). A check that cannot fail is not a check.
