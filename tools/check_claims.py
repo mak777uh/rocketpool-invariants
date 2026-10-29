@@ -45,6 +45,29 @@ def main() -> int:
             print("  -", t)
         return 1
 
+    # ДЫРА, найденная 29.10: строка таблицы, где свидетельство `test`, но имя теста НЕ в бэктиках,
+    # проходила молча — парсер её просто не видел. Это P12 («новый код отказа — новый дефект»):
+    # гейт обязан падать на строке, которую не смог разобрать.
+    unparsed = []
+    for line in claims.splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        joined = " ".join(cells).lower()
+        has_test_evidence = ("test" in joined) or ("тест" in joined)
+        if not has_test_evidence:
+            continue
+        names = re.findall(r"`(test\w+)`", " ".join(cells))
+        if not names:
+            unparsed.append(line.strip()[:120])
+    if unparsed:
+        print("FAIL: строки утверждают свидетельство `test`, но не называют теста в бэктиках:")
+        for u in unparsed:
+            print("  -", u)
+        return 1
+
     defined = set(re.findall(r"function (test\w*|testFuzz_\w+)\(", source))
     unused = sorted(defined - referenced)
     print(f"claims with test evidence: {len(referenced)}")
