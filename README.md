@@ -88,3 +88,18 @@ The receipt is **reproducible, not attested**: it carries `"signed": false` and 
 `signature_note`. Two runs on the same block with the same input digests must agree on the `tests` array;
 if they do not, the code or the environment changed. Signing is deliberately out of scope for slice 1 — a
 receipt that claims more than it can prove is exactly the failure mode this repository exists to avoid.
+
+### Checking a receipt
+
+`tools/verify_receipt.py` recomputes the input digests and, with `--rerun`, re-executes the suite at the
+recorded block:
+
+```bash
+python tools/verify_receipt.py receipts/26294800.json           # digests only, no network
+python tools/verify_receipt.py receipts/26294800.json --rerun   # + re-run the tests
+```
+
+Both directions were tested. Tampering with a recorded digest makes the verifier exit 1. Tampering with the
+`block` field, however, **passes** the digest check and is not caught even by `--rerun` when the tests are
+green on both blocks — a receipt without a signature cannot prove where it came from. The verifier says this
+in its own output rather than implying otherwise; that limitation is precisely what `"signed": false` records.
