@@ -74,6 +74,20 @@ here at all.
 
 MIT (see [LICENSE](LICENSE)). The write-up is CC BY 4.0.
 
+## Reproducible receipts
+
+Two receipts are committed, not one, because a receipt is only worth anything while the state it names is
+still reachable:
+
+| receipt | block | when | result |
+|---|---|---|---|
+`receipts/26294800.json` | 26 294 800 | 2026-10-28 | 7/7 passed, exit 0 |
+`receipts/26302229.json` | 26 302 229 | 2026-10-30 | **14/14 passed**, exit 0 |
+
+The second one exists for the reason the first one did: a pinned block stops saying anything about the
+protocol as it stands, and an unpinned run cannot be re-checked a day later. Both are pinned, and both can
+be re-run by anyone with an archive node.
+
 ## Reproducible receipt (slice 1)
 
 `tools/witness_receipt.py` runs the invariant suite against a pinned block and writes a JSON receipt:
