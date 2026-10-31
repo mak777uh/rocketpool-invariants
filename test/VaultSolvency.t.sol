@@ -22,7 +22,10 @@ contract VaultSolvencyTest is Test {
     IRocketStorage constant STORAGE = IRocketStorage(0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46);
 
     function setUp() public {
-        string memory rpc = vm.envOr("MAINNET_RPC_URL", string("https://eth.drpc.org"));
+        // 31.10.2026: eth.drpc.org отдал "tls handshake eof" и setUp упал — тест не дошёл до
+        // проверки. По умолчанию берём publicnode, как в остальных файлах; переопределяется
+        // через MAINNET_RPC_URL.
+        string memory rpc = vm.envOr("MAINNET_RPC_URL", string("https://ethereum-rpc.publicnode.com"));
         uint256 forkBlock = vm.envOr("FORK_BLOCK", uint256(0));
         if (forkBlock == 0) {
             vm.createSelectFork(rpc);
