@@ -1,0 +1,121 @@
+{
+ "kind": "reth-invariant-witness-receipt",
+ "version": 1,
+ "generated_utc": "2026-10-30T23:57:21+00:00",
+ "block": 26309000,
+ "rpc": "https://eth-mainnet.public.blastapi.io",
+ "forge_exit_code": 1,
+ "signed": false,
+ "signature_note": "no signing key is used; this receipt is reproducible, not attested",
+ "inputs": {
+  "test/REthAccounting.t.sol": "5d2d2daa2682e14b1475ad7333aa061441970fbc547697b0b50749727992c7b3",
+  "foundry.toml": "be4b75759aeddee36323d3637d44d773f3d4ab86725b9cfce1d65140b62b111e",
+  "CLAIMS.md": "02b9b95635ae8b3656b5f95be09b97a6a9024e3b51461f46a66d05bdc906fcf8",
+  "NOT-CLAIMED.md": "9fecc51404dd9b2861dbf5d3e81b78b15116638fd8c2981b8f82b37f1dbb84a2"
+ },
+ "summary": {
+  "tests": 14,
+  "passed": 13,
+  "failed": 1
+ },
+ "tests": [
+  {
+   "suite": "REthAccountingTest",
+   "test": "testFuzz_RoundTripNeverProfits(uint96)",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "testFuzz_SmallAmountRounding(uint96)",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "test_BurnPathPaysAtMostRate()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_DepositPoolBalanceWithinMaximum()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_ExcessBalanceSubsetOfBalance()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "test_ExchangeRateAtLeastParity()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_ExchangeRateMatchesNetworkTotal()",
+   "status": "Failure",
+   "reason": "rETH rate diverges from network total / supply: 1174820507908334599 !~= 1176155990726326136 (max delta: 0.1000000000000000%, real delta: 0.1135464027324147%)",
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "test_ExchangeRateNonDecreasing()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "test_LiveDepositIsGatedOrConserved()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "DepositPoolInvariantsTest",
+   "test": "test_NetworkTotalCoversDepositPool()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "VaultSolvencyTest",
+   "test": "test_PoolBalanceIsVaultEntry()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "VaultSolvencyTest",
+   "test": "test_PoolLiabilityBelowVaultTotal()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "REthAccountingTest",
+   "test": "test_RoundTripNeverProfits()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  },
+  {
+   "suite": "VaultSolvencyTest",
+   "test": "test_VaultCoversDepositPoolLiability()",
+   "status": "Success",
+   "reason": null,
+   "gas": null
+  }
+ ]
+}
